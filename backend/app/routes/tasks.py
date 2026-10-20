@@ -60,6 +60,18 @@ def update_task(task_id: int, body: TaskUpdate) -> Task:
     return _to_task(row)
 
 
+@router.delete("/{task_id}", status_code=204)
+def delete_task(task_id: int) -> None:
+    conn = db.connect()
+    try:
+        cur = conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+        conn.commit()
+        if cur.rowcount == 0:
+            raise not_found()
+    finally:
+        conn.close()
+
+
 @router.patch("/{task_id}/status", response_model=Task)
 def change_status(task_id: int, body: StatusChange) -> Task:
     status = parse_status(body.status)

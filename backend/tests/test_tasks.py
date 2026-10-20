@@ -111,3 +111,32 @@ def test_update_missing_task_404(client):
     r = client.patch("/tasks/999", json={"title": "a", "description": ""})
     assert r.status_code == 404
     assert r.json()["detail"]["code"] == "NOT_FOUND"
+
+
+def test_delete_removes_task_and_stays_removed(client):
+    a = _make(client, "a")
+    b = _make(client, "b")
+    r = client.delete(f"/tasks/{a['id']}")
+    assert r.status_code == 204
+    assert [t["id"] for t in client.get("/tasks").json()] == [b["id"]]
+
+
+def test_delete_missing_task_404(client):
+    r = client.delete("/tasks/999")
+    assert r.status_code == 404
+    assert r.json()["detail"]["code"] == "NOT_FOUND"
+
+
+def test_delete_twice_second_is_404(client):
+    t = _make(client)
+    assert client.delete(f"/tasks/{t['id']}").status_code == 204
+    assert client.delete(f"/tasks/{t['id']}").status_code == 404
+
+
+def test_delete_persists_across_restart(tmp_path, monkeypatch):
+    monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "del.db"))
+    with TestClient(app) as c:
+        t = c.post("/tasks", json={"title": "x"}).json()
+        c.delete(f"/tasks/{t['id']}")
+    with TestClient(app) as c:
+        assert c.get("/tasks").json() == []
