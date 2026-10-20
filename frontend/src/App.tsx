@@ -1,21 +1,47 @@
 import { useEffect, useState } from 'react'
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000'
+import { createTask, listTasks } from './api'
+import Board from './components/Board'
+import TaskDialog from './components/TaskDialog'
+import type { Task } from './types'
+import './App.css'
 
 function App() {
-  const [apiStatus, setApiStatus] = useState('확인 중...')
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${API_URL}/health`)
-      .then((res) => res.json())
-      .then((data) => setApiStatus(data.status))
-      .catch(() => setApiStatus('API에 연결할 수 없음'))
+    listTasks()
+      .then((list) => {
+        setTasks(list)
+        setLoadError(null)
+      })
+      .catch((err) =>
+        setLoadError(err instanceof Error ? err.message : '불러오지 못했습니다.'),
+      )
   }, [])
+
+  async function handleCreate(title: string, description: string) {
+    const created = await createTask(title, description)
+    // 성공 응답을 받은 뒤에만 화면에 반영한다(D-011).
+    setTasks((prev) => [...prev, created])
+    setDialogOpen(false)
+  }
 
   return (
     <main>
-      <h1>task-flow</h1>
-      <p>API 상태: {apiStatus}</p>
+      <header>
+        <h1>task-flow</h1>
+        <button onClick={() => setDialogOpen(true)}>새 task</button>
+      </header>
+      {loadError && <p className="error" role="alert">{loadError}</p>}
+      <Board tasks={tasks} />
+      {dialogOpen && (
+        <TaskDialog
+          onSave={handleCreate}
+          onCancel={() => setDialogOpen(false)}
+        />
+      )}
     </main>
   )
 }
