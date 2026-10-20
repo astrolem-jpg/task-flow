@@ -1,13 +1,22 @@
 import { useState } from 'react'
 
 interface Props {
+  heading?: string
+  initialTitle?: string
+  initialDescription?: string
   onSave: (title: string, description: string) => Promise<void>
   onCancel: () => void
 }
 
-export default function TaskDialog({ onSave, onCancel }: Props) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
+export default function TaskDialog({
+  heading = '새 task',
+  initialTitle = '',
+  initialDescription = '',
+  onSave,
+  onCancel,
+}: Props) {
+  const [title, setTitle] = useState(initialTitle)
+  const [description, setDescription] = useState(initialDescription)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -31,9 +40,9 @@ export default function TaskDialog({ onSave, onCancel }: Props) {
   }
 
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label="새 task">
+    <div className="overlay" role="dialog" aria-modal="true" aria-label={heading}>
       <form className="dialog" onSubmit={submit}>
-        <h2>새 task</h2>
+        <h2>{heading}</h2>
         <label>
           제목 (필수)
           <input

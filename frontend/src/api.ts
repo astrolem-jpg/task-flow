@@ -40,6 +40,12 @@ export const createTask = (title: string, description: string) =>
     body: JSON.stringify({ title, description }),
   })
 
+export const updateTask = (id: number, title: string, description: string) =>
+  request<Task>(`/tasks/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ title, description }),
+  })
+
 export const changeStatus = (id: number, status: Status) =>
   request<Task>(`/tasks/${id}/status`, {
     method: 'PATCH',

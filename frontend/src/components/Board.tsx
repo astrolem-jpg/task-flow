@@ -3,9 +3,10 @@ import { STATUSES, type Status, type Task } from '../types'
 interface Props {
   tasks: Task[]
   onChangeStatus: (id: number, status: Status) => void
+  onEdit: (task: Task) => void
 }
 
-export default function Board({ tasks, onChangeStatus }: Props) {
+export default function Board({ tasks, onChangeStatus, onEdit }: Props) {
   return (
     <div className="board">
       {STATUSES.map((s) => {
@@ -35,6 +36,9 @@ export default function Board({ tasks, onChangeStatus }: Props) {
                       ))}
                     </select>
                   </label>
+                  <button type="button" onClick={() => onEdit(t)}>
+                    수정
+                  </button>
                 </li>
               ))}
             </ul>
