@@ -46,6 +46,9 @@ export const updateTask = (id: number, title: string, description: string) =>
     body: JSON.stringify({ title, description }),
   })
 
+export const deleteTask = (id: number) =>
+  request<void>(`/tasks/${id}`, { method: 'DELETE' })
+
 export const changeStatus = (id: number, status: Status) =>
   request<Task>(`/tasks/${id}/status`, {
     method: 'PATCH',
