@@ -1,0 +1,14 @@
+main { max-width: 1000px; margin: 0 auto; padding: 16px; text-align: left; }
+header { display: flex; justify-content: space-between; align-items: center; }
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.column { background: rgba(128, 128, 128, 0.12); border-radius: 8px; padding: 8px 12px; min-height: 160px; }
+.column ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.card { background: rgba(128, 128, 128, 0.2); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.badge { font-size: 12px; opacity: 0.7; }
+.error { color: #d33; }
+.overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: grid; place-items: center; }
+.dialog { background: Canvas; color: CanvasText; padding: 20px; border-radius: 8px; width: min(420px, 90vw); display: grid; gap: 12px; }
+.dialog label { display: grid; gap: 4px; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; }
+.status-select { font-size: 12px; display: flex; gap: 6px; align-items: center; }
+.empty { opacity: 0.8; }
