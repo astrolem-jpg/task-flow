@@ -1,10 +1,11 @@
-import { STATUSES, type Task } from '../types'
+import { STATUSES, type Status, type Task } from '../types'
 
 interface Props {
   tasks: Task[]
+  onChangeStatus: (id: number, status: Status) => void
 }
 
-export default function Board({ tasks }: Props) {
+export default function Board({ tasks, onChangeStatus }: Props) {
   return (
     <div className="board">
       {STATUSES.map((s) => {
@@ -19,6 +20,21 @@ export default function Board({ tasks }: Props) {
                 <li key={t.id} className="card">
                   <strong>{t.title}</strong>
                   <span className="badge">{s.label}</span>
+                  <label className="status-select">
+                    상태 변경
+                    <select
+                      value={t.status}
+                      onChange={(e) =>
+                        onChangeStatus(t.id, e.target.value as Status)
+                      }
+                    >
+                      {STATUSES.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </li>
               ))}
             </ul>

@@ -1,4 +1,4 @@
-import type { Task } from './types'
+import type { Status, Task } from './types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000'
 
@@ -38,4 +38,10 @@ export const createTask = (title: string, description: string) =>
   request<Task>('/tasks', {
     method: 'POST',
     body: JSON.stringify({ title, description }),
+  })
+
+export const changeStatus = (id: number, status: Status) =>
+  request<Task>(`/tasks/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
   })

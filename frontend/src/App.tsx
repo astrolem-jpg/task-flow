@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { createTask, listTasks } from './api'
+import { ApiError, changeStatus, createTask, listTasks } from './api'
 import Board from './components/Board'
 import TaskDialog from './components/TaskDialog'
-import type { Task } from './types'
+import type { Status, Task } from './types'
 import './App.css'
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   useEffect(() => {
     listTasks()
@@ -20,6 +21,21 @@ function App() {
         setLoadError(err instanceof Error ? err.message : '불러오지 못했습니다.'),
       )
   }, [])
+
+  async function handleChangeStatus(id: number, status: Status) {
+    try {
+      const updated = await changeStatus(id, status)
+      // 성공 응답을 받은 뒤에만 반영한다(D-011).
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+      setActionError(null)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : '상태를 바꾸지 못했습니다.')
+      if (err instanceof ApiError && err.code === 'NOT_FOUND') {
+        // 이미 없는 카드: 목록을 다시 읽어 실제와 맞춘다.
+        listTasks().then(setTasks).catch(() => {})
+      }
+    }
+  }
 
   async function handleCreate(title: string, description: string) {
     const created = await createTask(title, description)
@@ -35,7 +51,8 @@ function App() {
         <button onClick={() => setDialogOpen(true)}>새 task</button>
       </header>
       {loadError && <p className="error" role="alert">{loadError}</p>}
-      <Board tasks={tasks} />
+      {actionError && <p className="error" role="alert">{actionError}</p>}
+      <Board tasks={tasks} onChangeStatus={handleChangeStatus} />
       {dialogOpen && (
         <TaskDialog
           onSave={handleCreate}
