@@ -20,3 +20,15 @@ def clean_title(title: str) -> str:
     if not cleaned:
         raise RuleError("TITLE_REQUIRED", "제목을 입력해 주세요.")
     return cleaned
+
+
+def parse_status(value: str) -> Status:
+    """상태 값 규칙(D-004): 세 가지 외의 값은 거부한다."""
+    try:
+        return Status(value)
+    except ValueError:
+        raise RuleError("INVALID_STATUS", "올바르지 않은 상태입니다.") from None
+
+
+def not_found() -> RuleError:
+    return RuleError("NOT_FOUND", "카드를 찾을 수 없습니다.", 404)

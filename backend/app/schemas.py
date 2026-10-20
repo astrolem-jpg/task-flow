@@ -13,3 +13,7 @@ class Task(BaseModel):
     title: str
     description: str
     status: Status
+
+
+class StatusChange(BaseModel):
+    status: str = ""
