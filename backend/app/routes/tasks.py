@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app import db
 from app.rules import Status, clean_title, not_found, parse_status
-from app.schemas import StatusChange, Task, TaskCreate
+from app.schemas import StatusChange, Task, TaskCreate, TaskUpdate
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -37,6 +37,24 @@ def create_task(body: TaskCreate) -> Task:
         )
         conn.commit()
         row = conn.execute("SELECT * FROM tasks WHERE id = ?", (cur.lastrowid,)).fetchone()
+    finally:
+        conn.close()
+    return _to_task(row)
+
+
+@router.patch("/{task_id}", response_model=Task)
+def update_task(task_id: int, body: TaskUpdate) -> Task:
+    title = clean_title(body.title)
+    conn = db.connect()
+    try:
+        cur = conn.execute(
+            "UPDATE tasks SET title = ?, description = ? WHERE id = ?",
+            (title, body.description, task_id),
+        )
+        conn.commit()
+        if cur.rowcount == 0:
+            raise not_found()
+        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
     finally:
         conn.close()
     return _to_task(row)

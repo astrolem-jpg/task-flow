@@ -15,5 +15,10 @@ class Task(BaseModel):
     status: Status
 
 
+class TaskUpdate(BaseModel):
+    title: str = ""
+    description: str = ""
+
+
 class StatusChange(BaseModel):
     status: str = ""

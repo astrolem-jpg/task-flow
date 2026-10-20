@@ -76,3 +76,38 @@ def test_status_change_missing_task_404(client):
     r = client.patch("/tasks/999/status", json={"status": "DONE"})
     assert r.status_code == 404
     assert r.json()["detail"]["code"] == "NOT_FOUND"
+
+
+def test_update_changes_title_description_keeps_status(client):
+    t = _make(client)
+    client.patch(f"/tasks/{t['id']}/status", json={"status": "DONE"})
+    r = client.patch(f"/tasks/{t['id']}", json={"title": "  새 제목 ", "description": "새 설명"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["title"] == "새 제목"
+    assert body["description"] == "새 설명"
+    assert body["status"] == "DONE"
+    assert client.get("/tasks").json()[0]["title"] == "새 제목"
+
+
+def test_update_can_clear_description(client):
+    t = _make(client)
+    r = client.patch(f"/tasks/{t['id']}", json={"title": "t", "description": ""})
+    assert r.status_code == 200
+    assert r.json()["description"] == ""
+
+
+def test_update_rejects_empty_and_blank_title_unchanged(client):
+    t = _make(client)
+    for title in ["", "   "]:
+        r = client.patch(f"/tasks/{t['id']}", json={"title": title, "description": "x"})
+        assert r.status_code == 400
+        assert r.json()["detail"]["code"] == "TITLE_REQUIRED"
+    saved = client.get("/tasks").json()[0]
+    assert saved["title"] == "t" and saved["description"] == "d"
+
+
+def test_update_missing_task_404(client):
+    r = client.patch("/tasks/999", json={"title": "a", "description": ""})
+    assert r.status_code == 404
+    assert r.json()["detail"]["code"] == "NOT_FOUND"
