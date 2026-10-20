@@ -18,16 +18,28 @@ function App() {
   const [editing, setEditing] = useState<Task | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    listTasks()
+  function loadTasks() {
+    return listTasks()
       .then((list) => {
         setTasks(list)
         setLoadError(null)
       })
       .catch((err) =>
+        // 이미 보이던 카드는 그대로 둔다(Q-08 미정, 임시 선택).
         setLoadError(err instanceof Error ? err.message : '불러오지 못했습니다.'),
       )
+      .finally(() => setLoading(false))
+  }
+
+  function retry() {
+    setLoading(true)
+    void loadTasks()
+  }
+
+  useEffect(() => {
+    void loadTasks()
   }, [])
 
   async function handleChangeStatus(id: number, status: Status) {
@@ -94,7 +106,18 @@ function App() {
         <h1>task-flow</h1>
         <button onClick={() => setDialogOpen(true)}>새 task</button>
       </header>
-      {loadError && <p className="error" role="alert">{loadError}</p>}
+      {loading && <p>불러오는 중...</p>}
+      {loadError && (
+        <p className="error" role="alert">
+          {loadError} 저장된 카드는 그대로 남아 있습니다.{' '}
+          <button type="button" onClick={retry} disabled={loading}>
+            다시 시도
+          </button>
+        </p>
+      )}
+      {!loading && !loadError && tasks.length === 0 && (
+        <p className="empty">카드가 없습니다. "새 task"를 눌러 추가해 보세요.</p>
+      )}
       {actionError && <p className="error" role="alert">{actionError}</p>}
       <Board
         tasks={tasks}

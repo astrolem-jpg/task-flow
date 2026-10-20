@@ -2,7 +2,7 @@
 
 개인용 Task 카드 관리 웹 앱. 설계 문서: PRD.md, ARCHITECTURE.md, DECISIONS.md.
 
-현재 단계: M0 (프로젝트 기본 구조). Task 기능, 데이터베이스, 로그인은 아직 없다.
+현재 단계: M1 (Task 등록·상태 변경·수정·삭제, SQLite 저장). 로그인은 없다.
 
 ## 구조
 
@@ -29,3 +29,12 @@ npm run dev
 ```
 
 확인: http://localhost:5173 → "API 상태: ok"
+
+## API 테스트
+
+```powershell
+cd backend
+uv run pytest
+```
+
+카드는 `backend/data/taskflow.db`(Git 제외)에 저장된다. 다른 위치를 쓰려면 환경 변수 `TASKFLOW_DB`를 지정한다.

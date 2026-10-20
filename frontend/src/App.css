@@ -11,3 +11,4 @@ header { display: flex; justify-content: space-between; align-items: center; }
 .dialog label { display: grid; gap: 4px; }
 .actions { display: flex; justify-content: flex-end; gap: 8px; }
 .status-select { font-size: 12px; display: flex; gap: 6px; align-items: center; }
+.empty { opacity: 0.8; }
