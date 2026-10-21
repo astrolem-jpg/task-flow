@@ -43,9 +43,9 @@ function App() {
   }, [])
 
   async function handleChangeStatus(id: number, status: Status) {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)))
     try {
       const updated = await changeStatus(id, status)
-      // 성공 응답을 받은 뒤에만 반영한다(D-011).
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
       setActionError(null)
     } catch (err) {
