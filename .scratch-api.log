@@ -1,0 +1,35 @@
+INFO:     Started server process [10968]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:65274 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "OPTIONS /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53407 - "OPTIONS /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:55498 - "OPTIONS /tasks/1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "PATCH /tasks/1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "PATCH /tasks/1/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "OPTIONS /tasks/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55498 - "DELETE /tasks/1 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53023 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53023 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59379 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:64944 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:64944 - "OPTIONS /tasks/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64944 - "DELETE /tasks/3 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:57822 - "OPTIONS /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56035 - "OPTIONS /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56035 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57822 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65189 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:56011 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56011 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62492 - "OPTIONS /tasks/4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62492 - "DELETE /tasks/4 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:56011 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56011 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54319 - "OPTIONS /tasks/2/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54319 - "PATCH /tasks/2/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54319 - "PATCH /tasks/2/status HTTP/1.1" 200 OK
