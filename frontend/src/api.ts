@@ -50,7 +50,7 @@ export const deleteTask = (id: number) =>
   request<void>(`/tasks/${id}`, { method: 'DELETE' })
 
 export const changeStatus = (id: number, status: Status) =>
-  request<Task>(`/tasks/${id}`, {
+  request<Task>(`/tasks/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   })
