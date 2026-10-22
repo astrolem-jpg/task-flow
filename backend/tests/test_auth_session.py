@@ -29,6 +29,12 @@ def _sessions():
 
 
 @pytest.fixture
+def client(anon_client):
+    """세션 테스트는 로그인하지 않은 상태에서 시작한다."""
+    return anon_client
+
+
+@pytest.fixture
 def registered(client):
     assert _signup(client).status_code == 201
     return client

@@ -44,7 +44,11 @@ def test_fresh_db_gets_tasks_users_and_sessions(db_file):
     assert {"tasks", "users", "sessions", "alembic_version"} <= _tables(db_file)
     assert _columns(db_file, "users") == ["id", "email", "password_hash", "created_at"]
     assert _columns(db_file, "sessions") == ["token_hash", "user_id", "expires_at"]
-    assert _columns(db_file, "tasks") == ["id", "title", "description", "status"]
+    assert _columns(db_file, "tasks") == ["id", "title", "description", "status", "owner_id"]
+    conn = sqlite3.connect(db_file)
+    indexes = {r[1] for r in conn.execute("PRAGMA index_list(tasks)")}
+    conn.close()
+    assert "ix_tasks_owner_id" in indexes
 
 
 def test_legacy_db_keeps_cards_after_upgrade(db_file):
@@ -57,9 +61,9 @@ def test_legacy_db_keeps_cards_after_upgrade(db_file):
     migrate()
 
     conn = sqlite3.connect(db_file)
-    rows = conn.execute("SELECT title, description, status FROM tasks").fetchall()
+    rows = conn.execute("SELECT title, description, status, owner_id FROM tasks").fetchall()
     conn.close()
-    assert rows == [("옛 카드", "d", "DONE")]
+    assert rows == [("옛 카드", "d", "DONE", None)]
     assert "users" in _tables(db_file)
 
 
@@ -83,6 +87,24 @@ def test_downgrade_to_baseline_keeps_tasks(db_file):
     downgrade("0001")
     assert not {"users", "sessions"} & _tables(db_file)
     assert "tasks" in _tables(db_file)
+    assert _columns(db_file, "tasks") == ["id", "title", "description", "status"]
+
+
+def test_downgrade_owner_id_keeps_cards_and_autoincrement(db_file):
+    migrate("0003")
+    conn = sqlite3.connect(db_file)
+    conn.execute("INSERT INTO tasks (title) VALUES ('남아야 함')")
+    conn.commit()
+    conn.close()
+    migrate()
+    downgrade("0003")
+    assert _columns(db_file, "tasks") == ["id", "title", "description", "status"]
+    conn = sqlite3.connect(db_file)
+    titles = [r[0] for r in conn.execute("SELECT title FROM tasks")]
+    sql = conn.execute("SELECT sql FROM sqlite_master WHERE name = 'tasks'").fetchone()[0]
+    conn.close()
+    assert titles == ["남아야 함"]
+    assert "AUTOINCREMENT" in sql.upper()
 
 
 def test_downgrade_sessions_keeps_users(db_file):

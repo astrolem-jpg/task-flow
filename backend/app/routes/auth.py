@@ -35,8 +35,12 @@ def signup(body: SignupRequest) -> User:
             )
         except sqlite3.IntegrityError:
             raise RuleError("EMAIL_TAKEN", "이미 가입된 이메일입니다.", 409) from None
-        conn.commit()
         user_id = cur.lastrowid
+        # 첫 가입자는 소유자가 없던 시절의 기존 카드를 넘겨받는다. (D-021)
+        # 가입과 같은 트랜잭션이라 둘 중 하나만 반영되는 일이 없다.
+        if conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 1:
+            conn.execute("UPDATE tasks SET owner_id = ? WHERE owner_id IS NULL", (user_id,))
+        conn.commit()
     finally:
         conn.close()
     return User(id=user_id, email=email)

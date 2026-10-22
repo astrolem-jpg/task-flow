@@ -11,5 +11,24 @@ def migrate(revision: str = "head") -> None:
     command.upgrade(Config(str(BACKEND_DIR / "alembic.ini")), revision)
 
 
+EMAIL = "user@example.com"
+PASSWORD = "password-for-tests"
+
+
+def signup(client, email: str = EMAIL, password: str = PASSWORD) -> None:
+    r = client.post("/auth/signup", json={"email": email, "password": password})
+    assert r.status_code == 201, r.text
+
+
+def login(client, email: str = EMAIL, password: str = PASSWORD) -> None:
+    r = client.post("/auth/login", json={"email": email, "password": password})
+    assert r.status_code == 200, r.text
+
+
+def signup_and_login(client, email: str = EMAIL, password: str = PASSWORD) -> None:
+    signup(client, email, password)
+    login(client, email, password)
+
+
 def downgrade(revision: str) -> None:
     command.downgrade(Config(str(BACKEND_DIR / "alembic.ini")), revision)

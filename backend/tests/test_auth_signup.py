@@ -1,6 +1,14 @@
 import sqlite3
 
+import pytest
+
 from app.db import db_path
+
+
+@pytest.fixture
+def client(anon_client):
+    """가입 테스트는 로그인하지 않은 상태에서 시작한다."""
+    return anon_client
 
 
 def _signup(client, email="a@x.com", password="password1"):

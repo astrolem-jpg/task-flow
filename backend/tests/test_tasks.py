@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-from tests.helpers import migrate
+from tests.helpers import login, migrate, signup_and_login
 
 
 def test_create_without_description_defaults_todo(client):
@@ -39,8 +39,10 @@ def test_data_persists_across_restart(tmp_path, monkeypatch):
     monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "keep.db"))
     migrate()
     with TestClient(app) as c:
+        signup_and_login(c)
         c.post("/tasks", json={"title": "남아야 함"})
     with TestClient(app) as c:
+        login(c)
         assert [t["title"] for t in c.get("/tasks").json()] == ["남아야 함"]
 
 
@@ -139,7 +141,9 @@ def test_delete_persists_across_restart(tmp_path, monkeypatch):
     monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "del.db"))
     migrate()
     with TestClient(app) as c:
+        signup_and_login(c)
         t = c.post("/tasks", json={"title": "x"}).json()
         c.delete(f"/tasks/{t['id']}")
     with TestClient(app) as c:
+        login(c)
         assert c.get("/tasks").json() == []
