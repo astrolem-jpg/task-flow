@@ -29,6 +29,11 @@ class SignupRequest(BaseModel):
     password: str = ""
 
 
+class LoginRequest(BaseModel):
+    email: str = ""
+    password: str = ""
+
+
 class User(BaseModel):
     id: int
     email: str

@@ -1,17 +1,27 @@
 import sqlite3
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.auth import require_session_secret
 from app.routes import auth, tasks
 from app.rules import RuleError
 
-app = FastAPI(title="task-flow API")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    require_session_secret()
+    yield
+
+
+app = FastAPI(title="task-flow API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )

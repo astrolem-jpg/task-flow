@@ -39,10 +39,11 @@ def db_file(tmp_path, monkeypatch):
     return path
 
 
-def test_fresh_db_gets_tasks_and_users(db_file):
+def test_fresh_db_gets_tasks_users_and_sessions(db_file):
     migrate()
-    assert {"tasks", "users", "alembic_version"} <= _tables(db_file)
+    assert {"tasks", "users", "sessions", "alembic_version"} <= _tables(db_file)
     assert _columns(db_file, "users") == ["id", "email", "password_hash", "created_at"]
+    assert _columns(db_file, "sessions") == ["token_hash", "user_id", "expires_at"]
     assert _columns(db_file, "tasks") == ["id", "title", "description", "status"]
 
 
@@ -77,8 +78,15 @@ def test_users_email_is_unique(db_file):
     conn.close()
 
 
-def test_downgrade_users_keeps_tasks(db_file):
+def test_downgrade_to_baseline_keeps_tasks(db_file):
     migrate()
     downgrade("0001")
-    assert "users" not in _tables(db_file)
+    assert not {"users", "sessions"} & _tables(db_file)
     assert "tasks" in _tables(db_file)
+
+
+def test_downgrade_sessions_keeps_users(db_file):
+    migrate()
+    downgrade("0002")
+    assert "sessions" not in _tables(db_file)
+    assert "users" in _tables(db_file)
