@@ -2,7 +2,7 @@
 
 개인용 Task 카드 관리 웹 앱. 설계 문서: PRD.md, ARCHITECTURE.md, DECISIONS.md.
 
-현재 단계: M1 (Task 등록·상태 변경·수정·삭제, SQLite 저장). 로그인은 없다.
+현재 단계: M1 (Task 등록·상태 변경·수정·삭제, SQLite 저장). 로그인과 사용자별 Task(R-009)는 M1 범위에 없다.
 
 ## 구조
 
