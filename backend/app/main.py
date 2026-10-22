@@ -1,22 +1,13 @@
 import sqlite3
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app import db
-from app.routes import tasks
+from app.routes import auth, tasks
 from app.rules import RuleError
 
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    db.init_db()
-    yield
-
-
-app = FastAPI(title="task-flow API", lifespan=lifespan)
+app = FastAPI(title="task-flow API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,6 +34,7 @@ def storage_error_handler(_: Request, __: sqlite3.Error) -> JSONResponse:
     return _error(500, "STORAGE_ERROR", "저장소 처리에 실패했습니다.")
 
 
+app.include_router(auth.router)
 app.include_router(tasks.router)
 
 
