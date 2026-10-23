@@ -6,6 +6,11 @@ export const STATUSES: { value: Status; label: string }[] = [
   { value: 'DONE', label: '완료' },
 ]
 
+export interface User {
+  id: number
+  email: string
+}
+
 export interface Task {
   id: number
   title: string
