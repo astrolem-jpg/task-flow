@@ -22,3 +22,18 @@ class TaskUpdate(BaseModel):
 
 class StatusChange(BaseModel):
     status: str = ""
+
+
+class SignupRequest(BaseModel):
+    email: str = ""
+    password: str = ""
+
+
+class LoginRequest(BaseModel):
+    email: str = ""
+    password: str = ""
+
+
+class User(BaseModel):
+    id: int
+    email: str

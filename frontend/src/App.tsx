@@ -9,11 +9,17 @@ import {
 } from './api'
 import Board from './components/Board'
 import TaskDialog from './components/TaskDialog'
-import type { Status, Task } from './types'
+import type { Status, Task, User } from './types'
 import './App.css'
 
-function App() {
+interface Props {
+  user: User
+  onLogout: () => Promise<void>
+}
+
+function App({ user, onLogout }: Props) {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [loggingOut, setLoggingOut] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Task | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -100,11 +106,30 @@ function App() {
     }
   }
 
+  async function handleLogout() {
+    if (loggingOut) return
+    setLoggingOut(true)
+    try {
+      // 성공하면 로그인 화면으로 바뀌어 이 화면은 사라진다(D-025).
+      await onLogout()
+    } catch (err) {
+      // 실패하면 로그인 상태를 유지하고 알린다.
+      setActionError(err instanceof Error ? err.message : '로그아웃하지 못했습니다.')
+      setLoggingOut(false)
+    }
+  }
+
   return (
     <main>
       <header>
         <h1>task-flow</h1>
-        <button onClick={() => setDialogOpen(true)}>새 task</button>
+        <div className="header-actions">
+          <span className="user-email">{user.email}</span>
+          <button onClick={() => setDialogOpen(true)}>새 task</button>
+          <button type="button" onClick={handleLogout} disabled={loggingOut}>
+            로그아웃
+          </button>
+        </div>
       </header>
       {loading && <p>불러오는 중...</p>}
       {loadError && (
