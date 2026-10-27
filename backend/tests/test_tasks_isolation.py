@@ -46,7 +46,10 @@ def test_other_users_card_cannot_be_changed_or_deleted(client, client_b):
         assert r.status_code == 404, (method, path)
         assert r.json()["detail"]["code"] == "NOT_FOUND"
     assert client.get("/tasks").json() == [
-        {"id": a["id"], "title": "원본", "description": "설명", "status": "TODO"}
+        {
+            "id": a["id"], "title": "원본", "description": "설명", "status": "TODO",
+            "priority": "NORMAL", "due_date": None,
+        }
     ]
 
 
@@ -73,7 +76,7 @@ def test_title_rule_still_checked_before_lookup(client, client_b):
 def test_create_stores_owner_but_does_not_expose_it(client, client_b):
     a = _make(client)
     b = _make(client_b)
-    assert set(a) == {"id", "title", "description", "status"}
+    assert set(a) == {"id", "title", "description", "status", "priority", "due_date"}
     conn = sqlite3.connect(db_path())
     owners = dict(conn.execute("SELECT id, owner_id FROM tasks"))
     emails = dict(conn.execute("SELECT id, email FROM users"))

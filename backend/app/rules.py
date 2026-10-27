@@ -1,4 +1,5 @@
 import re
+from datetime import date
 from enum import Enum
 
 
@@ -6,6 +7,12 @@ class Status(str, Enum):
     TODO = "TODO"
     IN_PROGRESS = "IN_PROGRESS"
     DONE = "DONE"
+
+
+class Priority(str, Enum):
+    LOW = "LOW"
+    NORMAL = "NORMAL"
+    HIGH = "HIGH"
 
 
 class RuleError(Exception):
@@ -53,6 +60,36 @@ def parse_status(value: str) -> Status:
         return Status(value)
     except ValueError:
         raise RuleError("INVALID_STATUS", "올바르지 않은 상태입니다.") from None
+
+
+def parse_priority(value: object) -> Priority:
+    """우선순위 규칙(R-010): LOW, NORMAL, HIGH와 정확히 같은 값만 허용한다. 지울 수 없어 null도 거부한다."""
+    if isinstance(value, str):
+        try:
+            return Priority(value)
+        except ValueError:
+            pass
+    raise RuleError(
+        "INVALID_PRIORITY", "우선순위는 LOW, NORMAL, HIGH 중 하나여야 합니다.", 422
+    )
+
+
+_DUE_DATE_RE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+
+
+def parse_due_date(value: object) -> str | None:
+    """마감일 규칙(R-011): null(없음)이거나 실제 있는 날짜 YYYY-MM-DD. 지난 날짜도 허용한다."""
+    if value is None:
+        return None
+    if isinstance(value, str) and _DUE_DATE_RE.fullmatch(value):
+        try:
+            date.fromisoformat(value)
+            return value
+        except ValueError:
+            pass
+    raise RuleError(
+        "INVALID_DUE_DATE", "마감일은 YYYY-MM-DD 형식의 실제 날짜여야 합니다.", 422
+    )
 
 
 def not_found() -> RuleError:

@@ -1,4 +1,9 @@
-import { STATUSES, type Status, type Task } from '../types'
+import { isOverdue, sortTasks, todayString } from '../taskOrder'
+import { PRIORITIES, STATUSES, type Status, type Task } from '../types'
+
+const PRIORITY_LABEL = Object.fromEntries(
+  PRIORITIES.map((p) => [p.value, p.label]),
+)
 
 interface Props {
   tasks: Task[]
@@ -13,20 +18,37 @@ export default function Board({
   onEdit,
   onDelete,
 }: Props) {
+  const today = todayString()
   return (
     <div className="board">
       {STATUSES.map((s) => {
-        const items = tasks
-          .filter((t) => t.status === s.value)
-          .sort((a, b) => a.id - b.id)
+        // 상태 열 안에서만 정렬한다. 기한 초과가 맨 위에 온다.
+        const items = sortTasks(
+          tasks.filter((t) => t.status === s.value),
+          today,
+        )
         return (
           <section key={s.value} className="column">
             <h2>{s.label}</h2>
             <ul>
               {items.map((t) => (
-                <li key={t.id} className="card">
+                <li
+                  key={t.id}
+                  className={isOverdue(t, today) ? 'card overdue' : 'card'}
+                >
                   <strong>{t.title}</strong>
                   <span className="badge">{s.label}</span>
+                  <span className="meta">
+                    <span className="badge">
+                      우선순위 {PRIORITY_LABEL[t.priority]}
+                    </span>
+                    {t.due_date && (
+                      <span className="badge">마감 {t.due_date}</span>
+                    )}
+                    {isOverdue(t, today) && (
+                      <span className="badge overdue-label">기한 초과</span>
+                    )}
+                  </span>
                   <label className="status-select">
                     상태 변경
                     <select
