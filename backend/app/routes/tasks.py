@@ -2,7 +2,14 @@ from fastapi import APIRouter, Depends
 
 from app import db
 from app.auth import get_current_user
-from app.rules import Status, clean_title, not_found, parse_status
+from app.rules import (
+    Status,
+    clean_title,
+    not_found,
+    parse_due_date,
+    parse_priority,
+    parse_status,
+)
 from app.schemas import StatusChange, Task, TaskCreate, TaskUpdate, User
 
 # 로그인하지 않은 요청은 모든 Task 동작에서 401이다. (R-009, D-022)
@@ -18,6 +25,8 @@ def _to_task(row) -> Task:
         title=row["title"],
         description=row["description"],
         status=Status(row["status"]),
+        priority=row["priority"],
+        due_date=row["due_date"],
     )
 
 
@@ -36,11 +45,14 @@ def list_tasks(user: User = Depends(get_current_user)) -> list[Task]:
 @router.post("", response_model=Task, status_code=201)
 def create_task(body: TaskCreate, user: User = Depends(get_current_user)) -> Task:
     title = clean_title(body.title)
+    priority = parse_priority(body.priority)
+    due_date = parse_due_date(body.due_date)
     conn = db.connect()
     try:
         cur = conn.execute(
-            "INSERT INTO tasks (title, description, status, owner_id) VALUES (?, ?, ?, ?)",
-            (title, body.description, Status.TODO.value, user.id),
+            "INSERT INTO tasks (title, description, status, priority, due_date, owner_id)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            (title, body.description, Status.TODO.value, priority.value, due_date, user.id),
         )
         conn.commit()
         row = conn.execute("SELECT * FROM tasks WHERE id = ?", (cur.lastrowid,)).fetchone()
@@ -54,11 +66,20 @@ def update_task(
     task_id: int, body: TaskUpdate, user: User = Depends(get_current_user)
 ) -> Task:
     title = clean_title(body.title)
+    # 보내지 않은 priority, due_date는 그대로 둔다. due_date는 null이면 지운다.
+    sets = ["title = ?", "description = ?"]
+    values: list = [title, body.description]
+    if "priority" in body.model_fields_set:
+        sets.append("priority = ?")
+        values.append(parse_priority(body.priority).value)
+    if "due_date" in body.model_fields_set:
+        sets.append("due_date = ?")
+        values.append(parse_due_date(body.due_date))
     conn = db.connect()
     try:
         cur = conn.execute(
-            "UPDATE tasks SET title = ?, description = ? WHERE id = ? AND owner_id = ?",
-            (title, body.description, task_id, user.id),
+            f"UPDATE tasks SET {', '.join(sets)} WHERE id = ? AND owner_id = ?",
+            (*values, task_id, user.id),
         )
         conn.commit()
         if cur.rowcount == 0:

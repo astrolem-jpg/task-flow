@@ -38,7 +38,10 @@ def test_rejected_requests_change_nothing(client, anon_client):
     ]:
         assert anon_client.request(method, path, json=body).status_code == 401
     assert client.get("/tasks").json() == [
-        {"id": t["id"], "title": "원본", "description": "d", "status": "TODO"}
+        {
+            "id": t["id"], "title": "원본", "description": "d", "status": "TODO",
+            "priority": "NORMAL", "due_date": None,
+        }
     ]
 
 

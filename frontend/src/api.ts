@@ -1,4 +1,4 @@
-import type { Status, Task, User } from './types'
+import type { Status, Task, TaskInput, User } from './types'
 
 // 화면 주소와 같은 호스트의 API를 부른다(D-025). localhost와 127.0.0.1은 서로 다른
 // 사이트라서 호스트가 다르면 SameSite=Lax 로그인 쿠키가 전달되지 않는다.
@@ -71,16 +71,16 @@ export const me = () =>
 
 export const listTasks = () => request<Task[]>('/tasks')
 
-export const createTask = (title: string, description: string) =>
+export const createTask = (input: TaskInput) =>
   request<Task>('/tasks', {
     method: 'POST',
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify(input),
   })
 
-export const updateTask = (id: number, title: string, description: string) =>
+export const updateTask = (id: number, input: TaskInput) =>
   request<Task>(`/tasks/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify(input),
   })
 
 export const deleteTask = (id: number) =>

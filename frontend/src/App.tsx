@@ -9,7 +9,7 @@ import {
 } from './api'
 import Board from './components/Board'
 import TaskDialog from './components/TaskDialog'
-import type { Status, Task, User } from './types'
+import type { Status, Task, TaskInput, User } from './types'
 import './App.css'
 
 interface Props {
@@ -63,17 +63,17 @@ function App({ user, onLogout }: Props) {
     }
   }
 
-  async function handleCreate(title: string, description: string) {
-    const created = await createTask(title, description)
+  async function handleCreate(input: TaskInput) {
+    const created = await createTask(input)
     // 성공 응답을 받은 뒤에만 화면에 반영한다(D-011).
     setTasks((prev) => [...prev, created])
     setDialogOpen(false)
   }
 
-  async function handleUpdate(title: string, description: string) {
+  async function handleUpdate(input: TaskInput) {
     if (!editing) return
     try {
-      const updated = await updateTask(editing.id, title, description)
+      const updated = await updateTask(editing.id, input)
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
       setActionError(null)
       setEditing(null)
@@ -162,6 +162,8 @@ function App({ user, onLogout }: Props) {
           heading="task 수정"
           initialTitle={editing.title}
           initialDescription={editing.description}
+          initialPriority={editing.priority}
+          initialDueDate={editing.due_date}
           onSave={handleUpdate}
           onCancel={() => setEditing(null)}
         />

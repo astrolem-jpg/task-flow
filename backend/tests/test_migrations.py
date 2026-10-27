@@ -44,7 +44,9 @@ def test_fresh_db_gets_tasks_users_and_sessions(db_file):
     assert {"tasks", "users", "sessions", "alembic_version"} <= _tables(db_file)
     assert _columns(db_file, "users") == ["id", "email", "password_hash", "created_at"]
     assert _columns(db_file, "sessions") == ["token_hash", "user_id", "expires_at"]
-    assert _columns(db_file, "tasks") == ["id", "title", "description", "status", "owner_id"]
+    assert _columns(db_file, "tasks") == [
+        "id", "title", "description", "status", "owner_id", "priority", "due_date",
+    ]
     conn = sqlite3.connect(db_file)
     indexes = {r[1] for r in conn.execute("PRAGMA index_list(tasks)")}
     conn.close()
@@ -61,9 +63,11 @@ def test_legacy_db_keeps_cards_after_upgrade(db_file):
     migrate()
 
     conn = sqlite3.connect(db_file)
-    rows = conn.execute("SELECT title, description, status, owner_id FROM tasks").fetchall()
+    rows = conn.execute(
+        "SELECT title, description, status, owner_id, priority, due_date FROM tasks"
+    ).fetchall()
     conn.close()
-    assert rows == [("옛 카드", "d", "DONE", None)]
+    assert rows == [("옛 카드", "d", "DONE", None, "NORMAL", None)]
     assert "users" in _tables(db_file)
 
 
@@ -83,7 +87,7 @@ def test_users_email_is_unique(db_file):
 
 
 def test_downgrade_to_baseline_keeps_tasks(db_file):
-    migrate()
+    migrate("0004")
     downgrade("0001")
     assert not {"users", "sessions"} & _tables(db_file)
     assert "tasks" in _tables(db_file)
@@ -96,7 +100,7 @@ def test_downgrade_owner_id_keeps_cards_and_autoincrement(db_file):
     conn.execute("INSERT INTO tasks (title) VALUES ('남아야 함')")
     conn.commit()
     conn.close()
-    migrate()
+    migrate("0004")
     downgrade("0003")
     assert _columns(db_file, "tasks") == ["id", "title", "description", "status"]
     conn = sqlite3.connect(db_file)
@@ -107,8 +111,35 @@ def test_downgrade_owner_id_keeps_cards_and_autoincrement(db_file):
     assert "AUTOINCREMENT" in sql.upper()
 
 
-def test_downgrade_sessions_keeps_users(db_file):
+def test_priority_due_date_existing_cards_get_defaults(db_file):
+    migrate("0004")
+    conn = sqlite3.connect(db_file)
+    conn.execute("INSERT INTO tasks (title, owner_id) VALUES ('기존', 7)")
+    conn.commit()
+    conn.close()
+
     migrate()
+
+    conn = sqlite3.connect(db_file)
+    rows = conn.execute("SELECT title, owner_id, priority, due_date FROM tasks").fetchall()
+    conn.execute("INSERT INTO tasks (title) VALUES ('새 카드')")
+    new = conn.execute("SELECT priority, due_date FROM tasks WHERE title = '새 카드'").fetchone()
+    conn.close()
+    assert rows == [("기존", 7, "NORMAL", None)]
+    assert new == ("NORMAL", None)
+
+
+def test_0005_has_no_downgrade_and_leaves_db_unchanged(db_file):
+    migrate()
+    with pytest.raises(NotImplementedError):
+        downgrade("0004")
+    assert _columns(db_file, "tasks") == [
+        "id", "title", "description", "status", "owner_id", "priority", "due_date",
+    ]
+
+
+def test_downgrade_sessions_keeps_users(db_file):
+    migrate("0004")
     downgrade("0002")
     assert "sessions" not in _tables(db_file)
     assert "users" in _tables(db_file)
