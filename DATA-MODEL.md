@@ -187,6 +187,7 @@ Task 한 건이 가지는 필드이다. 필드의 이름은 요청에서 제시�
 - sessions: `token_hash`(토큰의 HMAC 값, 원문 저장 안 함), `user_id`, `expires_at`. (D-020)
 - 구조 변경은 Alembic revision으로 한다. (D-024)
 - `tasks`에 `priority`(기본값 NORMAL)와 `due_date`(비울 수 있음) 두 열을 추가한다. (R-010, R-011) 이미 있는 Task는 `priority`가 NORMAL, 마감일 없음이 된다. 구조 변경은 새 Alembic revision으로 하고 실제 DB에는 사용자가 백업한 뒤 적용한다. (D-024)
+- subtasks: `id`, `task_id`(카드의 id), `title`(필수, 앞뒤 공백을 지운다), `description`(비어 있어도 된다). 카드 하나에 최대 20개이고, 보이는 순서는 `id` 순이다. 우선순위, 마감일, 완료 여부는 없다. (R-015, D-028) SQLite의 외래 키 강제에 기대지 않고, 카드를 삭제할 때 같은 트랜잭션에서 세부 항목도 지운다. 소유자 열은 두지 않고 부모 카드의 `owner_id`로 거른다. 새 테이블은 Alembic revision 0006으로 만들고 downgrade는 만들지 않는다. 실제 DB에는 사용자가 백업한 뒤 적용한다. (D-024)
 - 위 필드에 없는 그 밖의 항목은 넣지 않는다.
 - 정렬의 마지막 기준 "만든 순서"는 `id`를 쓴다. `created_at`은 정렬 때문에 필요하지 않다. (BUSINESS-RULES.md 4절)
 - 저장소는 로컬 파일 하나(SQLite)이고, 앱을 다시 실행해도 카드가 남는다. (D-009)

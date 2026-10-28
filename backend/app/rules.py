@@ -92,5 +92,46 @@ def parse_due_date(value: object) -> str | None:
     )
 
 
+SUBTASKS_MAX = 20
+
+
+def _invalid_subtasks() -> RuleError:
+    return RuleError(
+        "INVALID_SUBTASKS",
+        "세부 목록은 제목(title)과 설명(description) 문자열을 가진 항목의 목록이어야 합니다.",
+        422,
+    )
+
+
+def too_many_subtasks() -> RuleError:
+    return RuleError(
+        "TOO_MANY_SUBTASKS", f"세부 항목은 카드 하나에 최대 {SUBTASKS_MAX}개입니다.", 422
+    )
+
+
+def parse_subtasks(value: object) -> list[tuple[str, str]]:
+    """세부 항목 규칙(R-015, D-028): [{title, description}] 목록. 없으면(null) 빈 목록이다.
+
+    제목은 기존 제목 규칙(clean_title)을 따라 앞뒤 공백을 지우고, 비면 400이다.
+    설명은 생략하면 빈 문자열이다. 모양이 틀리면 422 INVALID_SUBTASKS, 20개를 넘으면 422 TOO_MANY_SUBTASKS다.
+    """
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise _invalid_subtasks()
+    parsed = []
+    for item in value:
+        if not isinstance(item, dict):
+            raise _invalid_subtasks()
+        title = item.get("title", "")
+        description = item.get("description", "")
+        if not isinstance(title, str) or not isinstance(description, str):
+            raise _invalid_subtasks()
+        parsed.append((clean_title(title), description))
+    if len(parsed) > SUBTASKS_MAX:
+        raise too_many_subtasks()
+    return parsed
+
+
 def not_found() -> RuleError:
     return RuleError("NOT_FOUND", "카드를 찾을 수 없습니다.", 404)

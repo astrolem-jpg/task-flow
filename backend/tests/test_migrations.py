@@ -41,7 +41,7 @@ def db_file(tmp_path, monkeypatch):
 
 def test_fresh_db_gets_tasks_users_and_sessions(db_file):
     migrate()
-    assert {"tasks", "users", "sessions", "alembic_version"} <= _tables(db_file)
+    assert {"tasks", "users", "sessions", "subtasks", "alembic_version"} <= _tables(db_file)
     assert _columns(db_file, "users") == ["id", "email", "password_hash", "created_at"]
     assert _columns(db_file, "sessions") == ["token_hash", "user_id", "expires_at"]
     assert _columns(db_file, "tasks") == [
@@ -130,7 +130,7 @@ def test_priority_due_date_existing_cards_get_defaults(db_file):
 
 
 def test_0005_has_no_downgrade_and_leaves_db_unchanged(db_file):
-    migrate()
+    migrate("0005")
     with pytest.raises(NotImplementedError):
         downgrade("0004")
     assert _columns(db_file, "tasks") == [
@@ -143,3 +143,99 @@ def test_downgrade_sessions_keeps_users(db_file):
     downgrade("0002")
     assert "sessions" not in _tables(db_file)
     assert "users" in _tables(db_file)
+
+
+# --- 0006 subtasks (R-015, D-028) ---------------------------------------------
+
+
+def test_0006_creates_subtasks_with_index(db_file):
+    migrate()
+    assert _columns(db_file, "subtasks") == ["id", "task_id", "title", "description"]
+    conn = sqlite3.connect(db_file)
+    indexes = {r[1] for r in conn.execute("PRAGMA index_list(subtasks)")}
+    sql = conn.execute("SELECT sql FROM sqlite_master WHERE name = 'subtasks'").fetchone()[0]
+    conn.close()
+    assert "ix_subtasks_task_id" in indexes
+    assert "AUTOINCREMENT" in sql.upper()
+
+
+def test_0006_keeps_existing_cards_and_starts_with_no_subtasks(db_file):
+    migrate("0005")
+    conn = sqlite3.connect(db_file)
+    conn.execute(
+        "INSERT INTO tasks (title, description, status, owner_id, priority, due_date)"
+        " VALUES ('기존', 'd', 'DONE', 7, 'HIGH', '2026-11-01')"
+    )
+    conn.commit()
+    conn.close()
+
+    migrate()
+
+    conn = sqlite3.connect(db_file)
+    cards = conn.execute(
+        "SELECT title, description, status, owner_id, priority, due_date FROM tasks"
+    ).fetchall()
+    subtasks = conn.execute("SELECT * FROM subtasks").fetchall()
+    conn.close()
+    assert cards == [("기존", "d", "DONE", 7, "HIGH", "2026-11-01")]
+    assert subtasks == []
+    assert _columns(db_file, "tasks") == [
+        "id", "title", "description", "status", "owner_id", "priority", "due_date",
+    ]
+
+
+def test_0006_description_defaults_to_empty_and_ids_are_not_reused(db_file):
+    migrate()
+    conn = sqlite3.connect(db_file)
+    conn.execute("INSERT INTO subtasks (task_id, title) VALUES (1, 'a')")
+    conn.execute("INSERT INTO subtasks (task_id, title) VALUES (1, 'b')")
+    conn.execute("DELETE FROM subtasks WHERE title = 'b'")
+    conn.execute("INSERT INTO subtasks (task_id, title) VALUES (1, 'c')")
+    rows = conn.execute("SELECT id, title, description FROM subtasks ORDER BY id").fetchall()
+    conn.close()
+    assert rows == [(1, "a", ""), (3, "c", "")]
+
+
+def test_0006_requires_task_id_and_title(db_file):
+    migrate()
+    conn = sqlite3.connect(db_file)
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO subtasks (title) VALUES ('x')")
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO subtasks (task_id) VALUES (1)")
+    conn.close()
+
+
+def test_0006_has_no_downgrade_and_leaves_subtasks_unchanged(db_file):
+    migrate()
+    conn = sqlite3.connect(db_file)
+    conn.execute("INSERT INTO subtasks (task_id, title) VALUES (1, '남아야 함')")
+    conn.commit()
+    conn.close()
+
+    with pytest.raises(NotImplementedError):
+        downgrade("0005")
+
+    conn = sqlite3.connect(db_file)
+    titles = [r[0] for r in conn.execute("SELECT title FROM subtasks")]
+    conn.close()
+    assert titles == ["남아야 함"]
+    assert "subtasks" in _tables(db_file)
+
+
+def test_0006_upgrade_from_legacy_db_with_cards(db_file):
+    conn = sqlite3.connect(db_file)
+    conn.execute(LEGACY_SCHEMA)
+    conn.execute("INSERT INTO tasks (title) VALUES ('옛 카드')")
+    conn.commit()
+    conn.close()
+
+    migrate()
+    migrate()
+
+    conn = sqlite3.connect(db_file)
+    titles = [r[0] for r in conn.execute("SELECT title FROM tasks")]
+    version = conn.execute("SELECT version_num FROM alembic_version").fetchone()[0]
+    conn.close()
+    assert titles == ["옛 카드"]
+    assert version == "0006"

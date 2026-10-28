@@ -1,16 +1,25 @@
 import { useEffect, useState } from 'react'
 import {
   ApiError,
+  addSubtasks,
   changeStatus,
   createTask,
   deleteTask,
   listTasks,
   suggestTask,
+  suggestTasks,
   updateTask,
 } from './api'
 import Board from './components/Board'
 import TaskDialog from './components/TaskDialog'
-import type { Status, Task, TaskInput, User } from './types'
+import type {
+  Status,
+  SubtaskInput,
+  Task,
+  TaskCreateInput,
+  TaskInput,
+  User,
+} from './types'
 import './App.css'
 
 interface Props {
@@ -64,11 +73,19 @@ function App({ user, onLogout }: Props) {
     }
   }
 
-  async function handleCreate(input: TaskInput) {
+  async function handleCreate(input: TaskCreateInput) {
     const created = await createTask(input)
     // 성공 응답을 받은 뒤에만 화면에 반영한다(D-011).
     setTasks((prev) => [...prev, created])
     setDialogOpen(false)
+  }
+
+  // AI 후보를 수정 중인 카드의 세부 목록에 붙인다. 성공 응답을 받은 뒤에만 반영한다(D-011).
+  // 창은 닫지 않고, 카드의 제목, 설명, 우선순위, 마감일은 바뀌지 않는다. (D-028)
+  async function handleAddSubtasks(taskId: number, items: SubtaskInput[]) {
+    const updated = await addSubtasks(taskId, items)
+    setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+    return updated.subtasks
   }
 
   async function handleUpdate(input: TaskInput) {
@@ -155,6 +172,7 @@ function App({ user, onLogout }: Props) {
         <TaskDialog
           onSave={handleCreate}
           onSuggest={suggestTask}
+          onGenerate={suggestTasks}
           onCancel={() => setDialogOpen(false)}
         />
       )}
@@ -166,8 +184,11 @@ function App({ user, onLogout }: Props) {
           initialDescription={editing.description}
           initialPriority={editing.priority}
           initialDueDate={editing.due_date}
+          initialSubtasks={editing.subtasks}
           onSave={handleUpdate}
           onSuggest={suggestTask}
+          onGenerate={suggestTasks}
+          onAddSubtasks={(items) => handleAddSubtasks(editing.id, items)}
           onCancel={() => setEditing(null)}
         />
       )}

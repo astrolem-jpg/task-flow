@@ -144,7 +144,7 @@ def test_new_fields_require_login(anon_client):
 
 def test_response_hides_owner_and_hashes_but_db_stores_values(client):
     t = _make(client, priority="LOW", due_date="2026-11-01")
-    assert set(t) == {"id", "title", "description", "status", "priority", "due_date"}
+    assert set(t) == {"id", "title", "description", "status", "priority", "due_date", "subtasks"}
     conn = sqlite3.connect(db_path())
     row = conn.execute("SELECT priority, due_date FROM tasks WHERE id = ?", (t["id"],)).fetchone()
     conn.close()

@@ -14,6 +14,15 @@ header { display: flex; justify-content: space-between; align-items: center; }
 .suggest-status { font-size: 12px; opacity: 0.8; }
 .suggest-error { margin: 0; font-size: 13px; }
 .reason { margin: 0; font-size: 12px; opacity: 0.85; }
+.candidates { display: grid; gap: 8px; max-height: 40vh; overflow-y: auto; }
+.candidates ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.candidate { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; background: rgba(128, 128, 128, 0.2); border-radius: 6px; padding: 8px; }
+.candidate .badge { margin-left: 8px; }
+.subtask-list { display: grid; gap: 4px; }
+.subtask-list ul, .subtasks ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; }
+.subtask-list li button { margin-left: 8px; }
+.subtasks { font-size: 13px; }
+.subtasks summary { cursor: pointer; }
 .error { color: #d33; }
 .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: grid; place-items: center; }
 .dialog { background: Canvas; color: CanvasText; padding: 20px; border-radius: 8px; width: min(420px, 90vw); display: grid; gap: 12px; }

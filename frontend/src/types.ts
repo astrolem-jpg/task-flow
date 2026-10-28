@@ -26,7 +26,23 @@ export interface Task {
   status: Status
   priority: Priority
   due_date: string | null
+  subtasks: Subtask[]
 }
+
+// 카드에 딸린 세부 항목. AI로 할일 만들기의 후보를 등록하면 여기에 쌓인다. (R-015, D-028)
+export interface Subtask {
+  id: number
+  title: string
+  description: string
+}
+
+export interface SubtaskInput {
+  title: string
+  description: string
+}
+
+// 카드 하나에 둘 수 있는 세부 항목의 최대 개수. 최종 판단은 API가 한다(D-004).
+export const SUBTASKS_MAX = 20
 
 // AI 제안(POST /tasks/suggest)의 응답. 제안만 하며 저장하지 않는다.
 export interface Suggestion {
@@ -42,3 +58,9 @@ export interface TaskInput {
   priority: Priority
   due_date: string | null
 }
+
+// AI로 할일 만들기(POST /tasks/suggest-tasks)의 후보 한 건. 등록하기 전에는 저장되지 않는다.
+export type TaskCandidate = TaskInput
+
+// 새 task를 만들 때만 세부 항목을 함께 보낼 수 있다. 수정은 세부 항목을 바꾸지 않는다.
+export type TaskCreateInput = TaskInput & { subtasks?: SubtaskInput[] }

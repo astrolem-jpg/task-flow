@@ -49,6 +49,21 @@ export default function Board({
                       <span className="badge overdue-label">기한 초과</span>
                     )}
                   </span>
+                  {t.subtasks.length > 0 && (
+                    <details className="subtasks">
+                      <summary>세부 목록 ({t.subtasks.length})</summary>
+                      <ul>
+                        {t.subtasks.map((s) => (
+                          <li key={s.id}>
+                            {s.title}
+                            {s.description && (
+                              <span className="reason"> - {s.description}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                   <label className="status-select">
                     상태 변경
                     <select
