@@ -10,6 +10,10 @@ header { display: flex; justify-content: space-between; align-items: center; }
 .meta { display: flex; flex-wrap: wrap; gap: 8px; }
 .card.overdue { border-left: 4px solid #d33; }
 .badge.overdue-label { color: #d33; font-weight: bold; opacity: 1; }
+.suggest-row { display: flex; align-items: center; gap: 8px; }
+.suggest-status { font-size: 12px; opacity: 0.8; }
+.suggest-error { margin: 0; font-size: 13px; }
+.reason { margin: 0; font-size: 12px; opacity: 0.85; }
 .error { color: #d33; }
 .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: grid; place-items: center; }
 .dialog { background: Canvas; color: CanvasText; padding: 20px; border-radius: 8px; width: min(420px, 90vw); display: grid; gap: 12px; }

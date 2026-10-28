@@ -28,6 +28,13 @@ export interface Task {
   due_date: string | null
 }
 
+// AI 제안(POST /tasks/suggest)의 응답. 제안만 하며 저장하지 않는다.
+export interface Suggestion {
+  priority: Priority
+  due_date: string | null
+  reason: string
+}
+
 // 새 task와 수정 입력이 보내는 값. due_date가 null이면 마감일 없음(수정에서는 지운다).
 export interface TaskInput {
   title: string

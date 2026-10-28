@@ -27,6 +27,8 @@ uv run uvicorn app.main:app --env-file .env --port 8000
 
 확인: http://127.0.0.1:8000/health → `{"status":"ok"}`
 
+AI 제안(`POST /tasks/suggest`, 이슈 #20)을 쓰려면 환경 변수 `ANTHROPHIC_API_KEY`(철자 그대로)에 키를 넣는다. 키는 Git에 넣지 않는다. 환경 변수를 저장한 뒤에는 **새로 연 터미널**에서 API를 띄워야 읽힌다. 키가 없어도 API는 시작되고, 이 기능만 503(`AI_DISABLED`)이 된다.
+
 로그인 전에 만든 카드는 **처음 가입하는 사람**의 카드가 된다(D-021).
 
 ## 화면 실행
