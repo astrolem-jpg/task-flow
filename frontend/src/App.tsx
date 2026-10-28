@@ -5,6 +5,7 @@ import {
   createTask,
   deleteTask,
   listTasks,
+  suggestTask,
   updateTask,
 } from './api'
 import Board from './components/Board'
@@ -153,6 +154,7 @@ function App({ user, onLogout }: Props) {
       {dialogOpen && (
         <TaskDialog
           onSave={handleCreate}
+          onSuggest={suggestTask}
           onCancel={() => setDialogOpen(false)}
         />
       )}
@@ -165,6 +167,7 @@ function App({ user, onLogout }: Props) {
           initialPriority={editing.priority}
           initialDueDate={editing.due_date}
           onSave={handleUpdate}
+          onSuggest={suggestTask}
           onCancel={() => setEditing(null)}
         />
       )}

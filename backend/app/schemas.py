@@ -28,6 +28,18 @@ class TaskUpdate(BaseModel):
     due_date: object = None
 
 
+# AI 제안은 저장하지 않는다. 요청은 입력 중인 제목과 설명이고, 응답은 제안 값과 근거다.
+class SuggestRequest(BaseModel):
+    title: str = ""
+    description: str = ""
+
+
+class SuggestResponse(BaseModel):
+    priority: Priority
+    due_date: str | None
+    reason: str
+
+
 class StatusChange(BaseModel):
     status: str = ""
 

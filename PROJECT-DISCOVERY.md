@@ -17,7 +17,7 @@
 | ID | 내용 | 출처 |
 |----|------|------|
 | F-01 | 브라우저에서 쓰는 웹 앱이다. | PRODUCT-DIRECTION.md |
-| F-02 | 제품 안에 AI 기능은 넣지 않는다. AI는 만드는 과정에서만 쓴다. | PRODUCT-DIRECTION.md |
+| F-02 | 제품 안에 AI 기능은 넣지 않는다. AI는 만드는 과정에서만 쓴다. (예외: 이슈 #20의 우선순위·마감일 AI 제안 하나만 허용, R-014) | PRODUCT-DIRECTION.md |
 | F-03 | 기술 표준 경로는 화면 React·Vite, API FastAPI, 저장소 SQLite이다. | PRODUCT-DIRECTION.md |
 | F-04 | 각자 자기 컴퓨터에서 실행한다. 배포는 이번 범위가 아니다. | PRODUCT-DIRECTION.md |
 | F-05 | 결제와 외부 알림은 만들지 않는다. | PRODUCT-DIRECTION.md |
@@ -112,7 +112,7 @@
 - 마감일 (F-12, 나중에)
 - 결제, 외부 알림 (F-05)
 - 배포 (F-04)
-- 제품 안의 AI 기능 (F-02)
+- 제품 안의 AI 기능 (F-02). 단, 우선순위·마감일 AI 제안(이슈 #20, R-014)은 예외다.
 
 ## 7. 열린 질문
 

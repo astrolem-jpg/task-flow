@@ -83,6 +83,9 @@ def test_me_without_cookie_is_401(client):
 
 def test_me_with_tampered_cookie_is_401(registered):
     _login(registered)
+    # 진짜 쿠키를 지워 위조 쿠키 하나만 남긴다. 같은 이름이 둘이면 보내는 순서가 라이브러리마다 달라
+    # 서버가 마지막 값(진짜 쿠키)을 읽어 버린다.
+    registered.cookies.clear()
     registered.cookies.set(COOKIE_NAME, "tampered-token")
     assert registered.get("/auth/me").status_code == 401
 
