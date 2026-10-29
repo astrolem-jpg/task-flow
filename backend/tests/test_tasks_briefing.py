@@ -114,6 +114,7 @@ def test_requires_login(anon_client, install):
 def test_route_is_registered_as_post_only(client):
     schema = client.get("/openapi.json").json()
     assert list(schema["paths"]["/tasks/briefing"]) == ["post"]
+    assert list(schema["paths"]["/tasks/weekplan"]) == ["post"]
     example = schema["components"]["schemas"]["BriefingResponse"]["example"]
     assert example["top3"][0]["id"] == 12
 

@@ -105,3 +105,26 @@ class BriefingResponse(BaseModel):
             }
         }
     }
+
+
+# 이번 주 계획도 저장하지 않는다. 응답은 날짜마다 할 일 id 목록과 조언 한 줄이다.
+class WeekPlanDay(BaseModel):
+    date: str
+    ids: list[int]
+
+
+class WeekPlanResponse(BaseModel):
+    days: list[WeekPlanDay]
+    note: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "days": [
+                    {"date": "2026-10-27", "ids": [12]},
+                    {"date": "2026-10-29", "ids": [7, 9]},
+                ],
+                "note": "마감이 몰린 목요일은 미리 여유를 두세요.",
+            }
+        }
+    }
