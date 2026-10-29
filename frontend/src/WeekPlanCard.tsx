@@ -29,6 +29,7 @@ export default function WeekPlanCard({ plan, tasks, onClose }: Props) {
   return (
     <section className="weekplan-card" aria-label="이번 주 계획">
       <div className="weekplan-table" role="table">
+        {rows.length === 0 && <p className="empty">계획된 카드를 찾을 수 없어요</p>}
         {rows.map((row) => (
           <div className="weekplan-row" role="row" key={row.date}>
             <strong className="weekplan-date" role="rowheader">

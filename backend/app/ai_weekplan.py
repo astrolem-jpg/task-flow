@@ -6,7 +6,7 @@ from app.ai_suggest import _failed, _load_json, _today
 # 이번 주 계획도 읽기만 한다. 보내는 쪽은 오늘 브리핑과 같고, 받는 모양만 날짜별 id 목록이다.
 MAX_TOKENS = 1200
 DAYS = 7
-EMPTY_NOTE = "오늘은 비어 있어요"
+EMPTY_NOTE = "이번 주는 비어 있어요"
 
 SYSTEM_PROMPT = """당신은 개인 할 일 관리 앱의 '이번 주 계획' 도우미입니다. 아직 끝나지 않은 Task 목록을 오늘부터 7일에 나누어 배치합니다.
 

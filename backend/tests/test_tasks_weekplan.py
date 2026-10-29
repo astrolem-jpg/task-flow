@@ -14,7 +14,7 @@ from tests.helpers import signup_and_login
 
 TODAY = "2026-10-27"
 FIRST, LAST = "2026-10-27", "2026-11-02"  # 오늘부터 7일
-EMPTY = {"days": [], "note": "오늘은 비어 있어요"}
+EMPTY = {"days": [], "note": "이번 주는 비어 있어요"}
 
 
 class FakeBlock:
