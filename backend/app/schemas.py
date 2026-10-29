@@ -83,3 +83,25 @@ class LoginRequest(BaseModel):
 class User(BaseModel):
     id: int
     email: str
+
+
+# 오늘 브리핑은 읽기만 한다. 응답은 먼저 할 일 최대 3개(근거 포함), 나중에 해도 되는 id, 응원 한 줄이다.
+class BriefingPick(BaseModel):
+    id: int
+    reason: str
+
+
+class BriefingResponse(BaseModel):
+    top3: list[BriefingPick]
+    later: list[int]
+    cheer: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "top3": [{"id": 12, "reason": "어제 마감이라 가장 먼저 해야 해요."}],
+                "later": [7, 9],
+                "cheer": "오늘도 한 걸음씩, 잘하고 있어요!",
+            }
+        }
+    }

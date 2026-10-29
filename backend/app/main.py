@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.auth import require_session_secret
-from app.routes import auth, suggest, tasks
+from app.routes import auth, briefing, suggest, tasks
 from app.rules import RuleError
 
 
@@ -47,6 +47,7 @@ def storage_error_handler(_: Request, __: sqlite3.Error) -> JSONResponse:
 app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(suggest.router)
+app.include_router(briefing.router)
 
 
 @app.get("/health")

@@ -1,0 +1,8 @@
+.briefing-bar { margin-top: 16px; display: grid; gap: 8px; }
+.briefing-bar > button { justify-self: start; }
+.briefing-card { display: grid; gap: 10px; background: rgba(128, 128, 128, 0.12); border-radius: 8px; padding: 12px; overflow-wrap: anywhere; }
+.briefing-card ol, .briefing-card ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
+.briefing-first li { display: flex; gap: 6px; }
+.briefing-no { flex: none; }
+.briefing-later li::before { content: '· '; }
+.briefing-cheer { margin: 0; font-style: italic; }
