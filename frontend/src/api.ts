@@ -1,4 +1,13 @@
-import type { Status, Suggestion, Task, TaskInput, User } from './types'
+import type {
+  Status,
+  SubtaskInput,
+  Suggestion,
+  Task,
+  TaskCandidate,
+  TaskCreateInput,
+  TaskInput,
+  User,
+} from './types'
 
 // 화면 주소와 같은 호스트의 API를 부른다(D-025). localhost와 127.0.0.1은 서로 다른
 // 사이트라서 호스트가 다르면 SameSite=Lax 로그인 쿠키가 전달되지 않는다.
@@ -71,10 +80,17 @@ export const me = () =>
 
 export const listTasks = () => request<Task[]>('/tasks')
 
-export const createTask = (input: TaskInput) =>
+export const createTask = (input: TaskCreateInput) =>
   request<Task>('/tasks', {
     method: 'POST',
     body: JSON.stringify(input),
+  })
+
+// 기존 카드에 세부 항목을 붙인다. 한 번에 모두 붙거나 하나도 안 붙고, 세부 항목이 붙은 카드를 돌려준다.
+export const addSubtasks = (taskId: number, items: SubtaskInput[]) =>
+  request<Task>(`/tasks/${taskId}/subtasks`, {
+    method: 'POST',
+    body: JSON.stringify({ items }),
   })
 
 export const updateTask = (id: number, input: TaskInput) =>
@@ -89,6 +105,14 @@ export const suggestTask = (title: string, description: string) =>
     method: 'POST',
     body: JSON.stringify({ title, description }),
   })
+
+// 주제(제목)에 맞는 할 일 후보를 제안받는다. 카드는 저장되지 않는다.
+// 후보를 등록하는 것은 기존 createTask다.
+export const suggestTasks = (title: string, description: string) =>
+  request<{ items: TaskCandidate[] }>('/tasks/suggest-tasks', {
+    method: 'POST',
+    body: JSON.stringify({ title, description }),
+  }).then((res) => res.items)
 
 export const deleteTask = (id: number) =>
   request<void>(`/tasks/${id}`, { method: 'DELETE' })
