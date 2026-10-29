@@ -10,6 +10,8 @@ import {
   suggestTasks,
   updateTask,
 } from './api'
+import BriefingCard from './BriefingCard'
+import { useBriefing } from './useBriefing'
 import Board from './components/Board'
 import TaskDialog from './components/TaskDialog'
 import type {
@@ -35,6 +37,7 @@ function App({ user, onLogout }: Props) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const briefing = useBriefing()
 
   function loadTasks() {
     return listTasks()
@@ -162,6 +165,20 @@ function App({ user, onLogout }: Props) {
         <p className="empty">카드가 없습니다. "새 task"를 눌러 추가해 보세요.</p>
       )}
       {actionError && <p className="error" role="alert">{actionError}</p>}
+      <div className="briefing-bar">
+        <button type="button" onClick={briefing.run} disabled={briefing.status === 'loading'}>
+          {briefing.status === 'loading' ? '만드는 중…' : '오늘 브리핑'}
+        </button>
+        {briefing.status === 'error' && (
+          <p className="error suggest-error" role="alert">{briefing.message}</p>
+        )}
+        {briefing.status === 'empty' && (
+          <p className="empty" role="status">{briefing.message}</p>
+        )}
+        {briefing.status === 'done' && briefing.briefing && (
+          <BriefingCard briefing={briefing.briefing} tasks={tasks} onClose={briefing.close} />
+        )}
+      </div>
       <Board
         tasks={tasks}
         onChangeStatus={handleChangeStatus}

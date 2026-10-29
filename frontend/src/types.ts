@@ -51,6 +51,18 @@ export interface Suggestion {
   reason: string
 }
 
+// 오늘 브리핑(POST /tasks/briefing)의 응답. 제목은 없고 id만 온다. 저장하지 않는다.
+export interface BriefingPick {
+  id: number
+  reason: string
+}
+
+export interface Briefing {
+  top3: BriefingPick[]
+  later: number[]
+  cheer: string
+}
+
 // 새 task와 수정 입력이 보내는 값. due_date가 null이면 마감일 없음(수정에서는 지운다).
 export interface TaskInput {
   title: string

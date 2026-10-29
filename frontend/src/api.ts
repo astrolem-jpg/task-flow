@@ -1,4 +1,5 @@
 import type {
+  Briefing,
   Status,
   SubtaskInput,
   Suggestion,
@@ -113,6 +114,10 @@ export const suggestTasks = (title: string, description: string) =>
     method: 'POST',
     body: JSON.stringify({ title, description }),
   }).then((res) => res.items)
+
+// 오늘 브리핑을 받는다. 본문은 없고 서버가 로그인한 사람의 완료 아닌 할 일을 모은다. 저장하지 않는다.
+export const briefing = () =>
+  request<Briefing>('/tasks/briefing', { method: 'POST' })
 
 export const deleteTask = (id: number) =>
   request<void>(`/tasks/${id}`, { method: 'DELETE' })
