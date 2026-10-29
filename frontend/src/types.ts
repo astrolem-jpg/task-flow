@@ -63,6 +63,17 @@ export interface Briefing {
   cheer: string
 }
 
+// 이번 주 계획(POST /tasks/weekplan)의 응답. 날짜마다 할 일 id만 온다. 저장하지 않는다.
+export interface WeekPlanDay {
+  date: string
+  ids: number[]
+}
+
+export interface WeekPlan {
+  days: WeekPlanDay[]
+  note: string
+}
+
 // 새 task와 수정 입력이 보내는 값. due_date가 null이면 마감일 없음(수정에서는 지운다).
 export interface TaskInput {
   title: string

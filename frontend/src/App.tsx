@@ -12,6 +12,8 @@ import {
 } from './api'
 import BriefingCard from './BriefingCard'
 import { useBriefing } from './useBriefing'
+import WeekPlanCard from './WeekPlanCard'
+import { useWeekPlan } from './useWeekPlan'
 import Board from './components/Board'
 import TaskDialog from './components/TaskDialog'
 import type {
@@ -38,6 +40,7 @@ function App({ user, onLogout }: Props) {
   const [actionError, setActionError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const briefing = useBriefing()
+  const weekPlan = useWeekPlan()
 
   function loadTasks() {
     return listTasks()
@@ -177,6 +180,20 @@ function App({ user, onLogout }: Props) {
         )}
         {briefing.status === 'done' && briefing.briefing && (
           <BriefingCard briefing={briefing.briefing} tasks={tasks} onClose={briefing.close} />
+        )}
+      </div>
+      <div className="briefing-bar">
+        <button type="button" onClick={weekPlan.run} disabled={weekPlan.status === 'loading'}>
+          {weekPlan.status === 'loading' ? '나누는 중…' : '이번 주 계획'}
+        </button>
+        {weekPlan.status === 'error' && (
+          <p className="error suggest-error" role="alert">{weekPlan.message}</p>
+        )}
+        {weekPlan.status === 'empty' && (
+          <p className="empty" role="status">{weekPlan.message}</p>
+        )}
+        {weekPlan.status === 'done' && weekPlan.plan && (
+          <WeekPlanCard plan={weekPlan.plan} tasks={tasks} onClose={weekPlan.close} />
         )}
       </div>
       <Board

@@ -8,6 +8,7 @@ import type {
   TaskCreateInput,
   TaskInput,
   User,
+  WeekPlan,
 } from './types'
 
 // 화면 주소와 같은 호스트의 API를 부른다(D-025). localhost와 127.0.0.1은 서로 다른
@@ -118,6 +119,10 @@ export const suggestTasks = (title: string, description: string) =>
 // 오늘 브리핑을 받는다. 본문은 없고 서버가 로그인한 사람의 완료 아닌 할 일을 모은다. 저장하지 않는다.
 export const briefing = () =>
   request<Briefing>('/tasks/briefing', { method: 'POST' })
+
+// 이번 주 계획을 받는다. 보내는 쪽은 오늘 브리핑과 같다. 저장하지 않는다.
+export const weekplan = () =>
+  request<WeekPlan>('/tasks/weekplan', { method: 'POST' })
 
 export const deleteTask = (id: number) =>
   request<void>(`/tasks/${id}`, { method: 'DELETE' })
