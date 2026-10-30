@@ -1,0 +1,6 @@
+.command-bar { margin-top: 16px; display: grid; gap: 8px; }
+.command-form { display: flex; gap: 8px; }
+.command-form input { flex: 1; min-width: 0; }
+.command-ask { margin: 0; }
+.command-card { display: grid; gap: 10px; background: rgba(128, 128, 128, 0.12); border-radius: 8px; padding: 12px; overflow-wrap: anywhere; }
+.command-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }

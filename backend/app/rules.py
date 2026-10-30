@@ -92,6 +92,19 @@ def parse_due_date(value: object) -> str | None:
     )
 
 
+COMMAND_MAX = 200
+
+
+def clean_command(text: str) -> str:
+    """한 문장 명령 규칙: 앞뒤 공백을 지우고 1자 이상 200자 이하여야 한다."""
+    cleaned = text.strip()
+    if not 1 <= len(cleaned) <= COMMAND_MAX:
+        raise RuleError(
+            "INVALID_COMMAND", f"명령은 1자 이상 {COMMAND_MAX}자 이하여야 합니다.", 422
+        )
+    return cleaned
+
+
 SUBTASKS_MAX = 20
 
 

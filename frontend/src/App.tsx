@@ -12,6 +12,7 @@ import {
 } from './api'
 import BriefingCard from './BriefingCard'
 import { useBriefing } from './useBriefing'
+import CommandBar from './CommandBar'
 import Board from './components/Board'
 import TaskDialog from './components/TaskDialog'
 import type {
@@ -179,6 +180,7 @@ function App({ user, onLogout }: Props) {
           <BriefingCard briefing={briefing.briefing} tasks={tasks} onClose={briefing.close} />
         )}
       </div>
+      <CommandBar tasks={tasks} onApplied={loadTasks} />
       <Board
         tasks={tasks}
         onChangeStatus={handleChangeStatus}

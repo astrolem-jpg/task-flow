@@ -1,5 +1,6 @@
 import type {
   Briefing,
+  CommandResult,
   Status,
   SubtaskInput,
   Suggestion,
@@ -119,7 +120,14 @@ export const suggestTasks = (title: string, description: string) =>
 export const briefing = () =>
   request<Briefing>('/tasks/briefing', { method: 'POST' })
 
-export const deleteTask = (id: number) =>
+// 한 문장을 add, due, done 제안으로 바꿔 받는다. 저장하지 않으며, 적용은 기존 API가 한다.
+export const command = (text: string) =>
+  request<CommandResult>('/tasks/command', {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  })
+
+export const deleteTask =(id: number) =>
   request<void>(`/tasks/${id}`, { method: 'DELETE' })
 
 export const changeStatus = (id: number, status: Status) =>
