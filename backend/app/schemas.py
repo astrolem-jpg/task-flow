@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 from app.rules import Priority, Status
@@ -102,6 +104,48 @@ class BriefingResponse(BaseModel):
                 "top3": [{"id": 12, "reason": "어제 마감이라 가장 먼저 해야 해요."}],
                 "later": [7, 9],
                 "cheer": "오늘도 한 걸음씩, 잘하고 있어요!",
+            }
+        }
+    }
+
+
+# 한 문장으로 시키기도 저장하지 않는다. 요청은 문장 하나, 응답은 제안한 action 목록과 되묻는 말이다.
+class CommandRequest(BaseModel):
+    text: str = ""
+
+
+class CommandAction(BaseModel):
+    kind: Literal["add", "due", "done"]
+    id: int | None
+    title: str | None
+    priority: Priority | None
+    due_date: str | None
+
+
+class CommandResponse(BaseModel):
+    actions: list[CommandAction]
+    ask: str | None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "actions": [
+                    {
+                        "kind": "add",
+                        "id": None,
+                        "title": "보고서 쓰기",
+                        "priority": "NORMAL",
+                        "due_date": "2026-10-28",
+                    },
+                    {
+                        "kind": "done",
+                        "id": 12,
+                        "title": None,
+                        "priority": None,
+                        "due_date": None,
+                    },
+                ],
+                "ask": None,
             }
         }
     }

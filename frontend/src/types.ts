@@ -63,6 +63,21 @@ export interface Briefing {
   cheer: string
 }
 
+// 한 문장으로 시키기(POST /tasks/command)의 응답. 제안만 하며 저장하지 않는다.
+// add는 id가 없고, due/done은 id만 있다. 쓰지 않는 값은 null이다.
+export interface CommandAction {
+  kind: 'add' | 'due' | 'done'
+  id: number | null
+  title: string | null
+  priority: Priority | null
+  due_date: string | null
+}
+
+export interface CommandResult {
+  actions: CommandAction[]
+  ask: string | null
+}
+
 // 새 task와 수정 입력이 보내는 값. due_date가 null이면 마감일 없음(수정에서는 지운다).
 export interface TaskInput {
   title: string
