@@ -11,19 +11,22 @@
 
 ## API 실행
 
-처음 한 번, `backend/.env`(Git 제외)에 세션 비밀값을 넣는다. 값이 비어 있으면 API가 시작되지 않는다.
+처음 한 번, `backend/.env`(Git 제외)에 세션 비밀값과 PostgreSQL 연결 주소를 넣는다. 둘 중 하나라도 비어 있으면 API가 시작되지 않는다. 비밀번호가 든 `DATABASE_URL`은 Git에 넣지 않는다.
 
 ```
 SESSION_SECRET=<긴 임의의 문자열>
+DATABASE_URL=<PostgreSQL 연결 주소>
 ```
 
-DB 구조는 Alembic으로 관리한다(D-024). **기존 `taskflow.db`가 있으면 먼저 `.db`로 끝나는 이름으로 백업한 뒤** 적용한다. 적용하기 전에 API를 켜면 새 테이블이 없어 `/auth/*`가 오류를 낸다.
+DB 구조는 `backend/supabase/schema.sql`이 만든다. 처음 한 번 적용한다. 적용하기 전에 API를 켜면 `init_db`가 열이 없다고 알리며 시작되지 않는다.
 
 ```powershell
 cd backend
-uv run alembic upgrade head
+uv run --with "psycopg[binary]" python supabase/apply_schema.py
 uv run uvicorn app.main:app --env-file .env --port 8000
 ```
+
+API는 `.env`를 스스로 읽지 않는다. 반드시 `--env-file .env`로 띄운다.
 
 확인: http://127.0.0.1:8000/health → `{"status":"ok"}`
 
@@ -52,4 +55,4 @@ cd backend
 uv run pytest
 ```
 
-카드는 `backend/data/taskflow.db`(Git 제외)에 저장된다. 다른 위치를 쓰려면 환경 변수 `TASKFLOW_DB`를 지정한다.
+카드는 `DATABASE_URL`의 PostgreSQL에 저장된다. 기존 테스트는 아직 SQLite(`TASKFLOW_DB`) 기준이라 PostgreSQL로 옮기기 전까지 대부분 실패한다.

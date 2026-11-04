@@ -141,7 +141,7 @@ def _open_tasks(user_id: int) -> list[dict]:
     try:
         rows = conn.execute(
             "SELECT id, title, priority, due_date FROM tasks "
-            "WHERE owner_id = ? AND status != 'DONE' ORDER BY id",
+            "WHERE owner_id = %s AND status != 'DONE' ORDER BY id",
             (user_id,),
         ).fetchall()
     finally:

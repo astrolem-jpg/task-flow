@@ -51,21 +51,22 @@ def _to_task(row, subtasks: list[Subtask]) -> Task:
 def _fetch_task(conn, task_id: int, owner_id: int) -> Task | None:
     """자기 카드 하나를 세부 항목과 함께 읽는다. 없거나 남의 카드면 None이다."""
     row = conn.execute(
-        "SELECT * FROM tasks WHERE id = ? AND owner_id = ?", (task_id, owner_id)
+        "SELECT * FROM tasks WHERE id = %s AND owner_id = %s", (task_id, owner_id)
     ).fetchone()
     if row is None:
         return None
     subtasks = conn.execute(
-        "SELECT * FROM subtasks WHERE task_id = ? ORDER BY id", (task_id,)
+        "SELECT * FROM subtasks WHERE task_id = %s ORDER BY id", (task_id,)
     ).fetchall()
     return _to_task(row, [_to_subtask(s) for s in subtasks])
 
 
 def _insert_subtasks(conn, task_id: int, items: list[tuple[str, str]]) -> None:
-    conn.executemany(
-        "INSERT INTO subtasks (task_id, title, description) VALUES (?, ?, ?)",
-        [(task_id, title, description) for title, description in items],
-    )
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO subtasks (task_id, title, description) VALUES (%s, %s, %s)",
+            [(task_id, title, description) for title, description in items],
+        )
 
 
 @router.get("", response_model=list[Task])
@@ -73,12 +74,12 @@ def list_tasks(user: User = Depends(get_current_user)) -> list[Task]:
     conn = db.connect()
     try:
         rows = conn.execute(
-            "SELECT * FROM tasks WHERE owner_id = ? ORDER BY id", (user.id,)
+            "SELECT * FROM tasks WHERE owner_id = %s ORDER BY id", (user.id,)
         ).fetchall()
         # 부모 카드의 owner_id로 걸러 자기 카드의 세부 항목만 읽는다.
         sub_rows = conn.execute(
             "SELECT s.* FROM subtasks s JOIN tasks t ON t.id = s.task_id"
-            " WHERE t.owner_id = ? ORDER BY s.id",
+            " WHERE t.owner_id = %s ORDER BY s.id",
             (user.id,),
         ).fetchall()
     finally:
@@ -98,14 +99,15 @@ def create_task(body: TaskCreate, user: User = Depends(get_current_user)) -> Tas
     conn = db.connect()
     try:
         # 카드와 세부 항목은 한 트랜잭션이다. 어느 하나라도 실패하면 카드도 만들지 않는다.
-        cur = conn.execute(
-            "INSERT INTO tasks (title, description, status, priority, due_date, owner_id)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
-            (title, body.description, Status.TODO.value, priority.value, due_date, user.id),
-        )
-        _insert_subtasks(conn, cur.lastrowid, subtasks)
-        conn.commit()
-        task = _fetch_task(conn, cur.lastrowid, user.id)
+        with conn.transaction():
+            cur = conn.execute(
+                "INSERT INTO tasks (title, description, status, priority, due_date, owner_id)"
+                " VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
+                (title, body.description, Status.TODO.value, priority.value, due_date, user.id),
+            )
+            task_id = cur.fetchone()["id"]
+            _insert_subtasks(conn, task_id, subtasks)
+        task = _fetch_task(conn, task_id, user.id)
     finally:
         conn.close()
     return task
@@ -125,13 +127,13 @@ def add_subtasks(
     try:
         if _fetch_task(conn, task_id, user.id) is None:
             raise not_found()
-        (count,) = conn.execute(
-            "SELECT COUNT(*) FROM subtasks WHERE task_id = ?", (task_id,)
-        ).fetchone()
+        count = conn.execute(
+            "SELECT COUNT(*) AS n FROM subtasks WHERE task_id = %s", (task_id,)
+        ).fetchone()["n"]
         if count + len(items) > SUBTASKS_MAX:
             raise too_many_subtasks()
-        _insert_subtasks(conn, task_id, items)
-        conn.commit()
+        with conn.transaction():
+            _insert_subtasks(conn, task_id, items)
         task = _fetch_task(conn, task_id, user.id)
     finally:
         conn.close()
@@ -145,21 +147,20 @@ def update_task(
     title = clean_title(body.title)
     # 보내지 않은 priority, due_date는 그대로 둔다. due_date는 null이면 지운다.
     # 세부 항목은 바꾸지 않는다.
-    sets = ["title = ?", "description = ?"]
+    sets = ["title = %s", "description = %s"]
     values: list = [title, body.description]
     if "priority" in body.model_fields_set:
-        sets.append("priority = ?")
+        sets.append("priority = %s")
         values.append(parse_priority(body.priority).value)
     if "due_date" in body.model_fields_set:
-        sets.append("due_date = ?")
+        sets.append("due_date = %s")
         values.append(parse_due_date(body.due_date))
     conn = db.connect()
     try:
         cur = conn.execute(
-            f"UPDATE tasks SET {', '.join(sets)} WHERE id = ? AND owner_id = ?",
+            f"UPDATE tasks SET {', '.join(sets)} WHERE id = %s AND owner_id = %s",
             (*values, task_id, user.id),
         )
-        conn.commit()
         if cur.rowcount == 0:
             raise not_found()
         task = _fetch_task(conn, task_id, user.id)
@@ -172,14 +173,14 @@ def update_task(
 def delete_task(task_id: int, user: User = Depends(get_current_user)) -> None:
     conn = db.connect()
     try:
-        cur = conn.execute(
-            "DELETE FROM tasks WHERE id = ? AND owner_id = ?", (task_id, user.id)
-        )
-        if cur.rowcount == 0:
-            raise not_found()
         # 자기 카드를 지운 경우에만 세부 항목을 지운다. 같은 트랜잭션이다. (D-028)
-        conn.execute("DELETE FROM subtasks WHERE task_id = ?", (task_id,))
-        conn.commit()
+        with conn.transaction():
+            cur = conn.execute(
+                "DELETE FROM tasks WHERE id = %s AND owner_id = %s", (task_id, user.id)
+            )
+            if cur.rowcount == 0:
+                raise not_found()
+            conn.execute("DELETE FROM subtasks WHERE task_id = %s", (task_id,))
     finally:
         conn.close()
 
@@ -192,10 +193,9 @@ def change_status(
     conn = db.connect()
     try:
         cur = conn.execute(
-            "UPDATE tasks SET status = ? WHERE id = ? AND owner_id = ?",
+            "UPDATE tasks SET status = %s WHERE id = %s AND owner_id = %s",
             (status.value, task_id, user.id),
         )
-        conn.commit()
         if cur.rowcount == 0:
             raise not_found()
         task = _fetch_task(conn, task_id, user.id)
