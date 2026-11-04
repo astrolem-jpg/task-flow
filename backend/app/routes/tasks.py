@@ -62,10 +62,11 @@ def _fetch_task(conn, task_id: int, owner_id: int) -> Task | None:
 
 
 def _insert_subtasks(conn, task_id: int, items: list[tuple[str, str]]) -> None:
-    conn.executemany(
-        "INSERT INTO subtasks (task_id, title, description) VALUES (%s, %s, %s)",
-        [(task_id, title, description) for title, description in items],
-    )
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO subtasks (task_id, title, description) VALUES (%s, %s, %s)",
+            [(task_id, title, description) for title, description in items],
+        )
 
 
 @router.get("", response_model=list[Task])
