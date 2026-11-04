@@ -13,8 +13,10 @@ import type {
 
 // 화면 주소와 같은 호스트의 API를 부른다(D-025). localhost와 127.0.0.1은 서로 다른
 // 사이트라서 호스트가 다르면 SameSite=Lax 로그인 쿠키가 전달되지 않는다.
+// 배포본은 백엔드가 같은 도메인의 /api 아래에 붙어 있다(api/index.py).
 const API_URL =
-  import.meta.env.VITE_API_URL ?? `http://${window.location.hostname}:8000`
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.PROD ? '/api' : `http://${window.location.hostname}:8000`)
 
 export class ApiError extends Error {
   code: string
