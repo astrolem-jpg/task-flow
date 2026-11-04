@@ -1,7 +1,7 @@
-import sqlite3
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request, Response
+from psycopg.errors import UniqueViolation
 
 from app import db
 from app.auth import (
@@ -28,19 +28,22 @@ def signup(body: SignupRequest) -> User:
     created_at = datetime.now(timezone.utc).isoformat()
     conn = db.connect()
     try:
-        try:
-            cur = conn.execute(
-                "INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)",
-                (email, password_hash, created_at),
-            )
-        except sqlite3.IntegrityError:
-            raise RuleError("EMAIL_TAKEN", "이미 가입된 이메일입니다.", 409) from None
-        user_id = cur.lastrowid
         # 첫 가입자는 소유자가 없던 시절의 기존 카드를 넘겨받는다. (D-021)
         # 가입과 같은 트랜잭션이라 둘 중 하나만 반영되는 일이 없다.
-        if conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 1:
-            conn.execute("UPDATE tasks SET owner_id = ? WHERE owner_id IS NULL", (user_id,))
-        conn.commit()
+        with conn.transaction():
+            try:
+                cur = conn.execute(
+                    "INSERT INTO users (email, password_hash, created_at)"
+                    " VALUES (%s, %s, %s) RETURNING id",
+                    (email, password_hash, created_at),
+                )
+            except UniqueViolation:
+                raise RuleError("EMAIL_TAKEN", "이미 가입된 이메일입니다.", 409) from None
+            user_id = cur.fetchone()["id"]
+            if conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"] == 1:
+                conn.execute(
+                    "UPDATE tasks SET owner_id = %s WHERE owner_id IS NULL", (user_id,)
+                )
     finally:
         conn.close()
     return User(id=user_id, email=email)
@@ -57,7 +60,7 @@ def login(body: LoginRequest, response: Response) -> User:
     conn = db.connect()
     try:
         row = conn.execute(
-            "SELECT id, email, password_hash FROM users WHERE email = ?", (email,)
+            "SELECT id, email, password_hash FROM users WHERE email = %s", (email,)
         ).fetchone()
         if row is None:
             verify_unknown_account(body.password)

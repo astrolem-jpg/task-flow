@@ -1,10 +1,11 @@
-import sqlite3
 from contextlib import asynccontextmanager
 
+import psycopg
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app import db
 from app.auth import require_session_secret
 from app.routes import auth, briefing, command, suggest, tasks
 from app.rules import RuleError
@@ -13,6 +14,7 @@ from app.rules import RuleError
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     require_session_secret()
+    db.init_db()
     yield
 
 
@@ -39,8 +41,8 @@ def rule_error_handler(_: Request, exc: RuleError) -> JSONResponse:
     return _error(exc.status_code, exc.code, exc.message)
 
 
-@app.exception_handler(sqlite3.Error)
-def storage_error_handler(_: Request, __: sqlite3.Error) -> JSONResponse:
+@app.exception_handler(psycopg.Error)
+def storage_error_handler(_: Request, __: psycopg.Error) -> JSONResponse:
     return _error(500, "STORAGE_ERROR", "저장소 처리에 실패했습니다.")
 
 

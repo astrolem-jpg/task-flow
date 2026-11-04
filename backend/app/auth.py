@@ -79,17 +79,16 @@ def create_session(conn, user_id: int) -> str:
     """세션을 저장하고 쿠키에 담을 토큰 원문을 돌려준다. 원문은 DB에 남기지 않는다."""
     token = secrets.token_urlsafe(32)
     expires_at = (_now() + timedelta(days=SESSION_DAYS)).isoformat()
-    conn.execute(
-        "INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)",
-        (_token_hash(token), user_id, expires_at),
-    )
-    conn.commit()
+    with conn.transaction():
+        conn.execute(
+            "INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (%s, %s, %s)",
+            (_token_hash(token), user_id, expires_at),
+        )
     return token
 
 
 def delete_session(conn, token: str) -> None:
-    conn.execute("DELETE FROM sessions WHERE token_hash = ?", (_token_hash(token),))
-    conn.commit()
+    conn.execute("DELETE FROM sessions WHERE token_hash = %s", (_token_hash(token),))
 
 
 def get_current_user(request: Request) -> User:
@@ -101,7 +100,7 @@ def get_current_user(request: Request) -> User:
     try:
         row = conn.execute(
             "SELECT u.id, u.email, s.expires_at FROM sessions s "
-            "JOIN users u ON u.id = s.user_id WHERE s.token_hash = ?",
+            "JOIN users u ON u.id = s.user_id WHERE s.token_hash = %s",
             (_token_hash(token),),
         ).fetchone()
         if row is None:
